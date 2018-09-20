@@ -27,7 +27,7 @@ def produce_pi(scale):
 def produce_hash(string):
     spark = SparkSession.builder.appName("PythonPi").getOrCreate()
     hash = spark.sparkContext.parallelize(list(string)).map(lambda letter: (letter, 1)).reduceByKey(lambda x, y: x + y)
-    return hash.collect()
+    return hash
 
 @app.route("/")
 def index():
