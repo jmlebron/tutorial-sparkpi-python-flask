@@ -8,39 +8,23 @@ from pyspark.sql import SparkSession
 app = Flask(__name__)
 
 
-def produce_pi(scale):
-    spark = SparkSession.builder.appName("PythonPi").getOrCreate()
-    n = 100000 * scale
-
-    def f(_):
-        from random import random
-        x = random()
-        y = random()
-        return 1 if x ** 2 + y ** 2 <= 1 else 0
-
-    count = spark.sparkContext.parallelize(
-        range(1, n + 1), scale).map(f).reduce(lambda x, y: x + y)
-    spark.stop()
-    pi = 4.0 * count / n
-    return pi
-
 def produce_hash(string):
     spark = SparkSession.builder.appName("PythonPi").getOrCreate()
-    hash = spark.sparkContext.parallelize(list(string)).map(lambda letter: (letter, 1)).reduceByKey(lambda x, y: x + y)
-    return hash
+    myhash = spark.sparkContext.parallelize(list(string)).map(lambda letter: (letter, 1)).reduceByKey(lambda x, y: x + y)
+    ret = myhash.collect()
+    spark.stop()
+    return ret
 
 @app.route("/")
 def index():
     return "Python Flask SparkPi server running. Add the 'sparkpi' route to this URL to invoke the app."
 
 
-@app.route("/sparkpi")
-def sparkpi():
-    scale = int(request.args.get('scale', 2))
+@app.route("/lettercount")
+def lettercount():
     mystr = str(request.args.get('string', "foobar"))
-    pi = produce_pi(scale)
     my_hash = produce_hash(mystr)
-    response = "Pi is roughly {} and the letters repeated in the supplied string are {}".format(pi, my_hash)
+    response = "Pi is roughly  and the letters repeated in the supplied string are {}".format(my_hash)
 
     return response
 
