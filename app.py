@@ -24,6 +24,10 @@ def produce_pi(scale):
     pi = 4.0 * count / n
     return pi
 
+def produce_hash(string):
+    spark = SparkSession.builder.appName("PythonPi").getOrCreate()
+    hash = spark.sparkContext.parallelize(list(string)).map(lambda letter: (letter, 1)).reduceByKey(lambda x, y: x + y)
+    return hash
 
 @app.route("/")
 def index():
@@ -33,8 +37,10 @@ def index():
 @app.route("/sparkpi")
 def sparkpi():
     scale = int(request.args.get('scale', 2))
+    mystr = str(request.args.get('string', "foobar"))
     pi = produce_pi(scale)
-    response = "Pi is roughly {}".format(pi)
+    my_hash = produce_hash(mystr)
+    response = "Pi is roughly {} and the letters repeated in the supplied string are {}".format(pi, my_hash)
 
     return response
 
